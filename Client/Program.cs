@@ -50,7 +50,7 @@ namespace Client
                   // 6. Send the data through the socket
                   int bytesSent = sender.Send(msg);
 
-                  // 7. Listen for the reponse (blocking call)
+                  // 7. Listen for the response (blocking call)
                   int bytesRec = sender.Receive(bytes);
                   // 8. Process the response
                   Console.WriteLine("Echoed test = {0}", Encoding.ASCII.GetString(bytes, 0, bytesRec));
