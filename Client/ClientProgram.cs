@@ -38,6 +38,7 @@ namespace Client
                     do
                     {
                         Task<string> sendRequest = new Task<string>(() => app.sendRequest(sender));
+                        sendRequest.Start();
                         userInput = sendRequest.Result;
                     } while (userInput != "E");
 
