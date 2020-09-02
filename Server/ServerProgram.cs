@@ -2,12 +2,14 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Server
 {
    class ServerProgram
    {
+        private int _numberOfConnections = 0;
 
       static void Main(string[] args)
       {
@@ -52,6 +54,9 @@ namespace Server
 
       private void HandleRequest(Socket handler)
         {
+            Interlocked.Increment(ref _numberOfConnections);
+            Console.WriteLine($"Number of connections: {_numberOfConnections}");
+
             byte[] bytes = new byte[1024];
             string data;
             string request;
@@ -77,6 +82,9 @@ namespace Server
 
                 handler.Send(msg);
             } while (request != "Exit");
+
+            Interlocked.Decrement(ref _numberOfConnections);
+            Console.WriteLine($"Number of connections: {_numberOfConnections}");
 
             // Close the connection
             handler.Shutdown(SocketShutdown.Both);
