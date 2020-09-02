@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Client
@@ -14,7 +15,6 @@ namespace Client
         static void Main(string[] args)
         {
             var app = new ClientProgram();
-            
 
             try
             {
@@ -34,28 +34,13 @@ namespace Client
 
                     Task receiveResponse = Task.Run(() => app.ReceiveResponse(sender));
 
-                    string message = "";
                     string userInput = "";
                     do
                     {
-                        userInput = app.GetUserInput();
-                        switch (userInput)
-                        {
-                            case "1":
-                                message = "View<EOF>";
-                                break;
-                            case "E":
-                                message = "Exit<EOF>";
-                                break;
-                        }
-
-                        // 5. Encode the data to be sent
-                        byte[] msg = Encoding.ASCII.GetBytes(message);
-
-                        // 6. Send the data through the socket
-                        int bytesSent = sender.Send(msg);
-
+                        Task<string> sendRequest = new Task<string>(() => app.sendRequest(sender));
+                        userInput = sendRequest.Result;
                     } while (userInput != "E");
+
                     // 9. Close the socket
                     sender.Shutdown(SocketShutdown.Both);
                     sender.Close();
@@ -88,9 +73,9 @@ namespace Client
                         break;
                 }
                 byte[] msg = Encoding.ASCII.GetBytes(message);
-                int bytesSent = sender.Send(msg);
+                sender.Send(msg);
             } while (userInput != "E");
-            return "";
+            return userInput;
         }
 
         private void ReceiveResponse(Socket sender) {
