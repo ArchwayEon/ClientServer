@@ -2,16 +2,17 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Server
 {
    class ServerProgram
    {
+        private int _numberOfConnections = 0;
       static void Main(string[] args)
       {
-         // Allocate a buffer to store incoming data
-         byte[] bytes = new byte[1024];
-         string data;
+            var app = new ServerProgram();
 
          // Establish a local endpoint for the socket
          IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
@@ -32,43 +33,13 @@ namespace Server
             while (true)
             {
                Console.WriteLine("Waiting for a connection...");
-               Console.WriteLine(ipAddress.ToString());
-               Console.WriteLine(localEndPoint.ToString());
-
                //    Listen for a connection (blocking call)
                Socket handler = listener.Accept();
 
-               string request;
-               do
-               {
-                  request = "";
-                  data = "";
-                  //    Process the connection to read the incoming data
-                  while (true)
-                  {
-                     int bytesRec = handler.Receive(bytes);
-                     data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                     int index = data.IndexOf("<EOF>");
-                     if (index > -1)
-                     {
-                        request = data.Substring(0, index);
-                        break;
-                     }
-                  }
-                  //    Process the incoming data
-                  Console.WriteLine("Request : {0}", request);
-                  byte[] msg = Encoding.ASCII.GetBytes(request);
+                    Task handleRequest = Task.Factory.StartNew(
+                       () => app.HandleRequest(handler)
 
-                  handler.Send(msg);
-               } while (request != "Exit");
-
-               // Close the connection
-               handler.Shutdown(SocketShutdown.Both);
-               handler.Close();
-               if (request == "Exit")
-               {
-                  break;
-               }
+                       );
             } // while(true)
 
          }
@@ -80,5 +51,47 @@ namespace Server
          Console.Read();
 
       }
-   }
+
+        private void HandleRequest(Socket handler)
+        {
+            Interlocked.Increment(ref _numberOfConnections);
+            Console.WriteLine($"Number of connections: {_numberOfConnections}");
+
+            // Allocate a buffer to store incoming data
+            byte[] bytes = new byte[1024];
+            string data;
+            string request;
+            do
+            {
+                request = "";
+                data = "";
+                //    Process the connection to read the incoming data
+                while (true)
+                {
+                    int bytesRec = handler.Receive(bytes);
+                    data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                    int index = data.IndexOf("<EOF>");
+                    if (index > -1)
+                    {
+                        request = data.Substring(0, index);
+                        break;
+                    }
+                }
+                //    Process the incoming data
+                Console.WriteLine("Request : {0}", request);
+                byte[] msg = Encoding.ASCII.GetBytes(request);
+
+                handler.Send(msg);
+            } while (request != "Exit");
+
+
+            Interlocked.Decrement(ref _numberOfConnections);
+            Console.WriteLine($"Number of connections: {_numberOfConnections}");
+
+            // Close the connection
+            handler.Shutdown(SocketShutdown.Both);
+            handler.Close();
+        }
+
+    }
 }

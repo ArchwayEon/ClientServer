@@ -2,16 +2,18 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Client
 {
    class ClientProgram
    {
-      static void Main(string[] args)
+        // 1. Allocate a buffer to store incoming data
+        private static readonly byte[] _bytes = new byte[1024];
+
+        public static void Main(string[] args)
       {
          var app = new ClientProgram();
-         // 1. Allocate a buffer to store incoming data
-         byte[] bytes = new byte[1024];
 
          try
          {
@@ -29,31 +31,19 @@ namespace Client
                sender.Connect(remoteEP);
                Console.WriteLine("Socket connected to {0}", sender.RemoteEndPoint.ToString());
 
-               string message = "";
+               Task receiveResponse = Task.Run(
+                    () => app.ReceiveResponse(sender)
+               );
+
                string userInput = "";
                do
                {
-                  userInput = app.GetUserInput();
-                  switch (userInput)
-                  {
-                     case "1":
-                        message = "View<EOF>";
-                        break;
-                     case "E":
-                        message = "Exit<EOF>";
-                        break;
-                  }
+                        Task<string> sendRequest = new Task<string>(
+                            () => app.SendRequest(sender)
+                        );
+                        sendRequest.Start();
+                        userInput = sendRequest.Result;
 
-                  // 5. Encode the data to be sent
-                  byte[] msg = Encoding.ASCII.GetBytes(message);
-
-                  // 6. Send the data through the socket
-                  int bytesSent = sender.Send(msg);
-
-                  // 7. Listen for the response (blocking call)
-                  int bytesRec = sender.Receive(bytes);
-                  // 8. Process the response
-                  Console.WriteLine("Echoed test = {0}", Encoding.ASCII.GetString(bytes, 0, bytesRec));
                } while (userInput != "E");
                // 9. Close the socket
                sender.Shutdown(SocketShutdown.Both);
@@ -69,6 +59,43 @@ namespace Client
             Console.WriteLine("Exception {0}", e.ToString());
          }
       } // Main
+
+      private string SendRequest(Socket sender)
+        {
+            string userInput;
+            string message = "";
+
+            do
+            {
+                userInput = GetUserInput();
+                switch (userInput)
+                {
+                    case "1":
+                        message = "View<EOF>";
+                        break;
+                    case "E":
+                        message = "Exit<EOF>";
+                        break;
+                }
+
+                // 5. Encode the data to be sent
+                byte[] msg = Encoding.ASCII.GetBytes(message);
+                sender.Send(msg);
+            } while (userInput != "E");
+            
+            return userInput;
+        }
+
+      private void ReceiveResponse(Socket sender)
+        {
+            string response;
+            do
+            {
+                int bytesRec = sender.Receive(_bytes);
+                response = Encoding.ASCII.GetString(_bytes, 0, bytesRec);
+                Console.WriteLine($"\n{response}");
+            } while (response != "Exit");
+        }
 
       private string GetUserInput()
       {
