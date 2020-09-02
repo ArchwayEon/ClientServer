@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Client
 {
@@ -31,6 +32,8 @@ namespace Client
                     sender.Connect(remoteEP);
                     Console.WriteLine("Socket connected to {0}", sender.RemoteEndPoint.ToString());
 
+                    Task receiveResponse = Task.Run(() => app.ReceiveResponse(sender));
+
                     string message = "";
                     string userInput = "";
                     do
@@ -52,8 +55,6 @@ namespace Client
                         // 6. Send the data through the socket
                         int bytesSent = sender.Send(msg);
 
-                        // 7. Listen for the response (blocking call)
-                        app.ReceiveResponse(sender);
                     } while (userInput != "E");
                     // 9. Close the socket
                     sender.Shutdown(SocketShutdown.Both);
