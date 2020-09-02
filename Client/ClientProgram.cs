@@ -7,11 +7,13 @@ namespace Client
 {
     class ClientProgram
     {
+        // 1. Allocate a buffer to store incoming data
+        private readonly byte[] _bytes = new byte[1024];
+
         static void Main(string[] args)
         {
             var app = new ClientProgram();
-            // 1. Allocate a buffer to store incoming data
-            byte[] bytes = new byte[1024];
+            
 
             try
             {
@@ -51,9 +53,7 @@ namespace Client
                         int bytesSent = sender.Send(msg);
 
                         // 7. Listen for the response (blocking call)
-                        int bytesRec = sender.Receive(bytes);
-                        // 8. Process the response
-                        Console.WriteLine("Echoed test = {0}", Encoding.ASCII.GetString(bytes, 0, bytesRec));
+                        app.ReceiveResponse(sender);
                     } while (userInput != "E");
                     // 9. Close the socket
                     sender.Shutdown(SocketShutdown.Both);
@@ -70,7 +70,15 @@ namespace Client
             }
         } // Main
 
-
+        private void ReceiveResponse(Socket sender) {
+            string response;
+            do
+            {
+                int bytesRec = sender.Receive(_bytes);
+                response = Encoding.ASCII.GetString(_bytes, 0, bytesRec);
+                Console.WriteLine($"\n{response}");
+            } while (response != "Exit");
+        }
 
         private string GetUserInput()
         {
