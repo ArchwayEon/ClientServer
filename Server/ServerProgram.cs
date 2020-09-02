@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Server
 {
@@ -11,9 +12,7 @@ namespace Server
 
         static void Main(string[] args)
         {
-            // Allocate a buffer to store incoming data
-            byte[] bytes = new byte[1024];
-            string data;
+            var app = new ServerProgram();
 
             // Establish a local endpoint for the socket
             IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
@@ -30,47 +29,19 @@ namespace Server
                 // Listen for incoming connections
                 listener.Listen(10);
 
+                
+                Console.WriteLine(ipAddress.ToString());
+                Console.WriteLine(localEndPoint.ToString());
+
                 // Loop
                 while (true)
                 {
                     Console.WriteLine("Waiting for a connection...");
-                    Console.WriteLine(ipAddress.ToString());
-                    Console.WriteLine(localEndPoint.ToString());
 
                     //    Listen for a connection (blocking call)
                     Socket handler = listener.Accept();
 
-                    string request;
-                    do
-                    {
-                        request = "";
-                        data = "";
-                        //    Process the connection to read the incoming data
-                        while (true)
-                        {
-                            int bytesRec = handler.Receive(bytes);
-                            data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                            int index = data.IndexOf("<EOF>");
-                            if (index > -1)
-                            {
-                                request = data.Substring(0, index);
-                                break;
-                            }
-                        }
-                        //    Process the incoming data
-                        Console.WriteLine("Request : {0}", request);
-                        byte[] msg = Encoding.ASCII.GetBytes(request);
-
-                        handler.Send(msg);
-                    } while (request != "Exit");
-
-                    // Close the connection
-                    handler.Shutdown(SocketShutdown.Both);
-                    handler.Close();
-                    if (request == "Exit")
-                    {
-                        break;
-                    }
+                    Task handlerRequest = Task.Factory.StartNew(() => app.HandleRequest(handler));
                 } // while(true)
 
             }
