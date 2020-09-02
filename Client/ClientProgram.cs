@@ -72,21 +72,24 @@ namespace Client
         } // Main
 
         private string sendRequest(Socket sender) {
-            string message;
+            string message = "";
             string userInput;
 
-            userInput = GetUserInput();
-            switch (userInput)
+            do
             {
-                case "1":
-                    message = "View<EOF>";
-                    break;
-                case "E":
-                    message = "Exit<EOF>";
-                    break;
-            }
-            byte[] msg = Encoding.ASCII.GetBytes(message);
-            int bytesSent = sender.Send(msg);
+                userInput = GetUserInput();
+                switch (userInput)
+                {
+                    case "1":
+                        message = "View<EOF>";
+                        break;
+                    case "E":
+                        message = "Exit<EOF>";
+                        break;
+                }
+                byte[] msg = Encoding.ASCII.GetBytes(message);
+                int bytesSent = sender.Send(msg);
+            } while (userInput != "E");
             return "";
         }
 
