@@ -2,87 +2,115 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Client
 {
    class Program
    {
-      static void Main(string[] args)
-      {
-         var app = new Program();
-         // 1. Allocate a buffer to store incoming data
-         byte[] bytes = new byte[1024];
 
-         try
-         {
-            // 2. Establish a remote endpoint for the socket
-            IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-            IPAddress ipAddress = ipHostInfo.AddressList[0];
-            IPEndPoint remoteEP = new IPEndPoint(ipAddress, 11000);
+        // 1. Allocate a buffer to store incoming data
+        private readonly byte[] _bytes = new byte[1024];
 
-            // 3. Create the socket
-            var sender = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+        static void Main(string[] args)
+        {
+            var app = new Program();
 
             try
             {
-               // 4. Connect the socket to the remote endpoint
-               sender.Connect(remoteEP);
-               Console.WriteLine("Socket connected to {0}", sender.RemoteEndPoint.ToString());
+                // 2. Establish a remote endpoint for the socket
+                IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
+                IPAddress ipAddress = ipHostInfo.AddressList[0];
+                IPEndPoint remoteEP = new IPEndPoint(ipAddress, 11000);
 
-               string message = "";
-               string userInput = "";
-               do
-               {
-                  userInput = app.GetUserInput();
-                  switch (userInput)
-                  {
-                     case "1":
-                        message = "View<EOF>";
-                        break;
-                     case "E":
-                        message = "Exit<EOF>";
-                        break;
-                  }
+                // 3. Create the socket
+                var sender = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-                  // 5. Encode the data to be sent
-                  byte[] msg = Encoding.ASCII.GetBytes(message);
+                try
+                {
+                    // 4. Connect the socket to the remote endpoint
+                    sender.Connect(remoteEP);
+                    Console.WriteLine("Socket connected to {0}", sender.RemoteEndPoint.ToString());
 
-                  // 6. Send the data through the socket
-                  int bytesSent = sender.Send(msg);
+                    Task receiveResponse = Task.Run(
+                        () => app.ReceiveResponse(sender)
+                    );
 
-                  // 7. Listen for the response (blocking call)
-                  int bytesRec = sender.Receive(bytes);
-                  // 8. Process the response
-                  Console.WriteLine("Echoed test = {0}", Encoding.ASCII.GetString(bytes, 0, bytesRec));
-               } while (userInput != "E");
-               // 9. Close the socket
-               sender.Shutdown(SocketShutdown.Both);
-               sender.Close();
+
+
+                    string userInput = "";
+                    do
+                    {
+                        Task<string> sendRequest = new Task<string>(
+                            () => app.SendRequest(sender)
+                        );
+                        sendRequest.Start();
+                        userInput = sendRequest.Result;
+                    } while (userInput != "E");
+                    // 9. Close the socket
+                    sender.Shutdown(SocketShutdown.Both);
+                    sender.Close();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Unexpected Exception: {0}", e.ToString());
+                }
             }
             catch (Exception e)
             {
-               Console.WriteLine("Unexpected Exception: {0}", e.ToString());
+                Console.WriteLine("Exception {0}", e.ToString());
             }
-         }
-         catch (Exception e)
-         {
-            Console.WriteLine("Exception {0}", e.ToString());
-         }
-      } // Main
+        }// Main
 
-      private string GetUserInput()
-      {
-         string userInput;
-         do
-         {
-            Console.WriteLine("======================");
-            Console.WriteLine("1. View Map           ");
-            Console.WriteLine("E. Exit               ");
-            Console.WriteLine("======================");
-            Console.Write("Make a choice:");
-            userInput = Console.ReadLine();
-         } while (userInput != "1" && userInput != "E");
-         return userInput;
-      }
+        private string SendRequest(Socket sender)
+        {
+            string message = String.Empty;
+            string userInput;
+
+            do
+            {
+                userInput = GetUserInput();
+                switch (userInput)
+                {
+                    case "1":
+                        message = "View<EOF>";
+                        break;
+                    case "E":
+                        message = "View<EOF";
+                        break;
+                }
+                byte[] msg = Encoding.ASCII.GetBytes(message);
+                sender.Send(msg);
+            } while (userInput != "E");
+
+            return userInput;
+        }
+
+        private void ReceiveResponse(Socket sender)
+        {
+            string response;
+            do
+            {
+                int bytesRec = sender.Receive(_bytes);
+                response = Encoding.ASCII.GetString(_bytes, 0, bytesRec);
+                Console.WriteLine($"\n{response}");
+            } while (response != "Exit");
+            
+        }
+
+        private string GetUserInput()
+        {
+            string userInput;
+            do
+            {
+                Console.WriteLine("======================");
+                Console.WriteLine("1. View Map           ");
+                Console.WriteLine("E. Exit               ");
+                Console.WriteLine("======================");
+                Console.Write("Make a choice:");
+                userInput = Console.ReadLine();
+            } while (userInput != "1" && userInput != "E");
+            return userInput;
+        }
    }
 }
