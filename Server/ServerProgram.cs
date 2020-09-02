@@ -7,6 +7,8 @@ namespace Server
 {
     class ServerProgram
     {
+        private int _numberOfConnections = 0;
+
         static void Main(string[] args)
         {
             // Allocate a buffer to store incoming data
