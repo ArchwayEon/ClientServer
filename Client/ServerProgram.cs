@@ -5,11 +5,11 @@ using System.Text;
 
 namespace Client
 {
-   class Program
+   class ServerProgram
    {
       static void Main(string[] args)
       {
-         var app = new Program();
+         var app = new ServerProgram();
          // 1. Allocate a buffer to store incoming data
          byte[] bytes = new byte[1024];
 
