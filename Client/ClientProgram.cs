@@ -8,10 +8,10 @@ namespace Client
 {
    class ClientProgram
    {
-        // 1. Allocate a buffer to store incoming data
-        private static readonly byte[] _bytes = new byte[1024];
+      // 1. Allocate a buffer to store incoming data
+      private static readonly byte[] _bytes = new byte[1024];
 
-        public static void Main(string[] args)
+      public static void Main(string[] args)
       {
          var app = new ClientProgram();
 
@@ -38,11 +38,11 @@ namespace Client
                string userInput = "";
                do
                {
-                        Task<string> sendRequest = new Task<string>(
-                            () => app.SendRequest(sender)
-                        );
-                        sendRequest.Start();
-                        userInput = sendRequest.Result;
+                  Task<string> sendRequest = new Task<string>(
+                      () => app.SendRequest(sender)
+                  );
+                  sendRequest.Start();
+                  userInput = sendRequest.Result;
 
                } while (userInput != "E");
                // 9. Close the socket
@@ -61,41 +61,41 @@ namespace Client
       } // Main
 
       private string SendRequest(Socket sender)
-        {
-            string userInput;
-            string message = "";
+      {
+         string userInput;
+         string message = "";
 
-            do
+         do
+         {
+            userInput = GetUserInput();
+            switch (userInput)
             {
-                userInput = GetUserInput();
-                switch (userInput)
-                {
-                    case "1":
-                        message = "View<EOF>";
-                        break;
-                    case "E":
-                        message = "Exit<EOF>";
-                        break;
-                }
+               case "1":
+                  message = "View<EOF>";
+                  break;
+               case "E":
+                  message = "Exit<EOF>";
+                  break;
+            }
 
-                // 5. Encode the data to be sent
-                byte[] msg = Encoding.ASCII.GetBytes(message);
-                sender.Send(msg);
-            } while (userInput != "E");
-            
-            return userInput;
-        }
+            // 5. Encode the data to be sent
+            byte[] msg = Encoding.ASCII.GetBytes(message);
+            sender.Send(msg);
+         } while (userInput != "E");
+
+         return userInput;
+      }
 
       private void ReceiveResponse(Socket sender)
-        {
-            string response;
-            do
-            {
-                int bytesRec = sender.Receive(_bytes);
-                response = Encoding.ASCII.GetString(_bytes, 0, bytesRec);
-                Console.WriteLine($"\n{response}");
-            } while (response != "Exit");
-        }
+      {
+         string response;
+         do
+         {
+            int bytesRec = sender.Receive(_bytes);
+            response = Encoding.ASCII.GetString(_bytes, 0, bytesRec);
+            Console.WriteLine($"\n{response}");
+         } while (response != "Exit");
+      }
 
       private string GetUserInput()
       {
