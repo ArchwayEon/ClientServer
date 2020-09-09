@@ -60,4 +60,5 @@ namespace Client
             _states.Add(new MenuState(name, interactionCode, effect));
         }
     }
+}
 
