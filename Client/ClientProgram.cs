@@ -8,8 +8,25 @@ namespace Client
 {
    class ClientProgram
    {
-      // 1. Allocate a buffer to store incoming data
-      private static readonly byte[] _bytes = new byte[1024];
+      private readonly byte[] _bytes = new byte[1024];
+      private readonly ConsoleMenu _menu;
+      private readonly MessageArea _clientMessageArea;
+      private readonly MessageArea _serverMessageArea;
+      private readonly MapArea _map;
+      private readonly ConsoleWrapper _console = new ConsoleWrapper();
+
+      public ClientProgram()
+      {
+         _menu = new ConsoleMenu(_console);
+         _clientMessageArea = new MessageArea(_console);
+         _serverMessageArea = new MessageArea(_console);
+         _map = new MapArea(_console);
+         SetUpMenu();
+         _clientMessageArea.Line = 0;
+         _serverMessageArea.Line = Console.WindowHeight - 4;
+         _serverMessageArea.Prompt = "SERVER";
+         _serverMessageArea.BorderCharacter = '#';
+      }
 
       public static void Main(string[] args)
       {
@@ -29,7 +46,14 @@ namespace Client
             {
                // 4. Connect the socket to the remote endpoint
                sender.Connect(remoteEP);
-               Console.WriteLine("Socket connected to {0}", sender.RemoteEndPoint.ToString());
+               app.ShowClientMessage($"Socket connected to {sender.RemoteEndPoint}");
+
+               Task.Run(
+                  () =>
+                  {
+                     app.ShowMap();
+                  }
+               );
 
                Task receiveResponse = Task.Run(
                     () => app.ReceiveResponse(sender)
@@ -67,7 +91,7 @@ namespace Client
 
          do
          {
-            userInput = GetUserInput();
+            userInput = GetUserInput(0, 3);
             switch (userInput)
             {
                case "1":
@@ -93,23 +117,44 @@ namespace Client
          {
             int bytesRec = sender.Receive(_bytes);
             response = Encoding.ASCII.GetString(_bytes, 0, bytesRec);
-            Console.WriteLine($"\n{response}");
+            ShowServerMessage($"{response}");
          } while (response != "Exit");
       }
 
-      private string GetUserInput()
+      private void ShowClientMessage(string message)
+      {
+         _clientMessageArea.Show(message);
+         _menu.PositionCursor();
+      }
+
+      private void ShowServerMessage(string message)
+      {
+         _serverMessageArea.Show(message);
+         _menu.PositionCursor();
+      }
+
+      private void SetUpMenu()
+      {
+         _menu.AddOption("1. View Map           ");
+         _menu.AddOption("E. Exit               ");
+      }
+
+      private string GetUserInput(int x, int y)
       {
          string userInput;
          do
          {
-            Console.WriteLine("======================");
-            Console.WriteLine("1. View Map           ");
-            Console.WriteLine("E. Exit               ");
-            Console.WriteLine("======================");
-            Console.Write("Make a choice:");
+
+            _menu.Show(x, y);
+            _menu.PositionCursor();
             userInput = Console.ReadLine();
          } while (userInput != "1" && userInput != "E");
          return userInput;
+      }
+
+      private void ShowMap()
+      {
+         _map.Show();
       }
    }
 }
