@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.Design;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 namespace Server {
 	class ServerProgram {
 		private int _numOfConns = 0;
+		private Map map = new Map();
 
 		static void Main(string[] args) {
 			var app = new ServerProgram();
@@ -57,6 +59,7 @@ namespace Server {
 
 			// Allocate a buffer to store incoming data
 			byte[] bytes = new byte[1024];
+			byte[] msg;
 			string request;
 			string data;
 
@@ -78,7 +81,12 @@ namespace Server {
 
 				//    Process the incoming data
 				Console.WriteLine("Request : {0}", request);
-				byte[] msg = Encoding.ASCII.GetBytes(request);
+
+				if (request == "View") {
+					msg = Encoding.ASCII.GetBytes(map.ToString());
+				} else {
+					msg = Encoding.ASCII.GetBytes(request);
+				}
 
 				handler.Send(msg);
 			} while (request != "Exit");
