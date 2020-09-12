@@ -36,10 +36,7 @@ namespace Server
                //    Listen for a connection (blocking call)
                Socket handler = listener.Accept();
 
-               Task handleRequest = Task.Factory.StartNew(
-                  () => app.HandleRequest(handler)
-
-                  );
+               Task handleRequest = Task.Factory.StartNew(() => app.HandleRequest(handler));    //Task.Factory allows extra configuration of the task; StartNew spins a thread
             } // while(true)
 
          }
@@ -63,7 +60,6 @@ namespace Server
          string request;
          do
          {
-            request = "";
             data = "";
             //    Process the connection to read the incoming data
             while (true)

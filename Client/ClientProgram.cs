@@ -31,6 +31,7 @@ namespace Client
                sender.Connect(remoteEP);
                Console.WriteLine("Socket connected to {0}", sender.RemoteEndPoint.ToString());
 
+                    // this creates a thread; Task.Run
                Task receiveResponse = Task.Run(
                     () => app.ReceiveResponse(sender)
                );
@@ -38,9 +39,7 @@ namespace Client
                string userInput = "";
                do
                {
-                  Task<string> sendRequest = new Task<string>(
-                      () => app.SendRequest(sender)
-                  );
+                  Task<string> sendRequest = new Task<string>(() => app.SendRequest(sender));
                   sendRequest.Start();
                   userInput = sendRequest.Result;
 
@@ -94,7 +93,7 @@ namespace Client
             int bytesRec = sender.Receive(_bytes);
             response = Encoding.ASCII.GetString(_bytes, 0, bytesRec);
             Console.WriteLine($"\n{response}");
-         } while (response != "Exit");
+         } while (response.ToLower() != "exit");
       }
 
       private string GetUserInput()
@@ -108,7 +107,7 @@ namespace Client
             Console.WriteLine("======================");
             Console.Write("Make a choice:");
             userInput = Console.ReadLine();
-         } while (userInput != "1" && userInput != "E");
+         } while (userInput != "1" && userInput.ToLower() != "e");
          return userInput;
       }
    }
