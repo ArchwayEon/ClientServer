@@ -63,9 +63,8 @@ namespace Server
          string request;
          do
          {
-            request = "";
             data = "";
-            //    Process the connection to read the incoming data
+            // Process the connection to read the incoming data
             while (true)
             {
                int bytesRec = handler.Receive(bytes);
@@ -77,18 +76,16 @@ namespace Server
                   break;
                }
             }
-            //    Process the incoming data
+            // Process the incoming data
             Console.WriteLine("Request : {0}", request);
             byte[] msg = Encoding.ASCII.GetBytes(request);
 
             handler.Send(msg);
          } while (request != "Exit");
 
-
          Interlocked.Decrement(ref _numberOfConnections);
          Console.WriteLine($"Number of connections: {_numberOfConnections}");
 
-         // Close the connection
          handler.Shutdown(SocketShutdown.Both);
          handler.Close();
       }

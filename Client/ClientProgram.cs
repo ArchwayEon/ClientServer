@@ -31,21 +31,19 @@ namespace Client
       public static void Main(string[] args)
       {
          var app = new ClientProgram();
-         var mw = new ClientMessageWriter();
 
          try
          {
-            // 2. Establish a remote endpoint for the socket
+            // Establish a remote endpoint for the socket
             IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress ipAddress = ipHostInfo.AddressList[0];
             IPEndPoint remoteEP = new IPEndPoint(ipAddress, 11000);
 
-            // 3. Create the socket
             var sender = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
             try
             {
-               // 4. Connect the socket to the remote endpoint
+               // Connect the socket to the remote endpoint
                sender.Connect(remoteEP);
                app.ShowClientMessage($"Socket connected to {sender.RemoteEndPoint}");
 
@@ -70,7 +68,6 @@ namespace Client
                   userInput = sendRequest.Result;
 
                } while (userInput != "E");
-               // 9. Close the socket
                sender.Shutdown(SocketShutdown.Both);
                sender.Close();
             }
@@ -103,7 +100,6 @@ namespace Client
                   break;
             }
 
-            // 5. Encode the data to be sent
             byte[] msg = Encoding.ASCII.GetBytes(message);
             sender.Send(msg);
          } while (userInput != "E");
