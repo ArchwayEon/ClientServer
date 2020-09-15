@@ -31,6 +31,7 @@ namespace Client
       public static void Main(string[] args)
       {
          var app = new ClientProgram();
+         var mw = new ClientMessageWriter();
 
          try
          {
