@@ -22,6 +22,9 @@ namespace PeerToPeerWF
       public PeerToPeerForm()
       {
          InitializeComponent();
+            this.BackColor = Color.Black;
+            this.commandBox.BackColor = Color.DarkGray;
+            this.txtMain.BackColor = Color.Black;
          _serverResetEvent = new AutoResetEvent(false);
          _clients = new ConcurrentBag<PeerClient>();
       }
