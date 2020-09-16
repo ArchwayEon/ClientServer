@@ -8,8 +8,8 @@ namespace PeerToPeer
    public class StringObserver : IObserver<string>
    {
       private IDisposable _unsubscriber;
-      private RichTextBox _txtBox;
-      private object _lockObject = new object();
+      private readonly RichTextBox _txtBox;
+      private readonly object _lockObject = new object();
 
       public StringObserver(RichTextBox txtBox)
       {
@@ -28,7 +28,6 @@ namespace PeerToPeer
 
       public void OnCompleted()
       {
-         int row = Console.WindowHeight;
          lock (_lockObject)
          {
             _txtBox.Text += "The server has terminated." + Environment.NewLine;
