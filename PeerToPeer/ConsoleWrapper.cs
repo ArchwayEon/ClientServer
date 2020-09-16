@@ -26,5 +26,13 @@ namespace PeerToPeer
             return Console.ReadLine();
          }
       }
+
+      public void SetCursorPosition(int x, int y)
+      {
+         lock (_lockObject)
+         {
+            Console.SetCursorPosition(x, y);
+         }
+      }
    }
 }

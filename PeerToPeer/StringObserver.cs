@@ -10,6 +10,7 @@ namespace PeerToPeer
       private IDisposable _unsubscriber;
       private readonly ConsoleWrapper _console;
       private readonly IOArea _messageArea;
+      private int _defaultX, _defaultY;
 
       public StringObserver(ConsoleWrapper console)
       {
@@ -56,6 +57,12 @@ namespace PeerToPeer
             }
          }
          _messageArea.Show(col, row, items[0]);
+      }
+
+      public void SetDefaultPosition(int x, int y)
+      {
+         _defaultX = x;
+         _defaultY = y;
       }
    }
 }

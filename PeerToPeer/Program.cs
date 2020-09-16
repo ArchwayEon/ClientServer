@@ -9,6 +9,7 @@ namespace PeerToPeer
       static void Main(string[] args)
       {
          ConsoleWrapper console = new ConsoleWrapper();
+         IOArea io = new IOArea(console);
          string input = console.Input(0, 0, "Enter username:this port >");
          var info = input.Split(':');
          string username = info[0];
@@ -24,13 +25,21 @@ namespace PeerToPeer
             Task.Factory.StartNew(
                () => server.WaitForConnection()
             );
-            serverResetEvent.WaitOne();
+
+            string userInput;
+            int y = Console.WindowHeight - 1;
+            do
+            {
+               Console.SetCursorPosition(0, y);
+               Console.Write("CMD>");
+               userInput = Console.ReadLine();
+            } while (userInput != "QUIT");
          }
          catch(Exception ex)
          {
             Console.WriteLine($"Exception : {ex}");
          }
-
       }
+
    }
 }

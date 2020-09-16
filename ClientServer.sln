@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "Server\Server.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "Client\Client.csproj", "{9C93A8B1-E41F-44ED-95AF-61EE50DAE006}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeerToPeer", "PeerToPeer\PeerToPeer.csproj", "{3C5EC21A-B1EB-4083-9B3C-94041FDC548F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PeerToPeer", "PeerToPeer\PeerToPeer.csproj", "{3C5EC21A-B1EB-4083-9B3C-94041FDC548F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PeerToPeerWF", "PeerToPeerWF\PeerToPeerWF.csproj", "{3B7487E7-CEA3-4DA8-9D2F-1AF94E17661B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{3C5EC21A-B1EB-4083-9B3C-94041FDC548F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C5EC21A-B1EB-4083-9B3C-94041FDC548F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C5EC21A-B1EB-4083-9B3C-94041FDC548F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B7487E7-CEA3-4DA8-9D2F-1AF94E17661B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B7487E7-CEA3-4DA8-9D2F-1AF94E17661B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B7487E7-CEA3-4DA8-9D2F-1AF94E17661B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B7487E7-CEA3-4DA8-9D2F-1AF94E17661B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
