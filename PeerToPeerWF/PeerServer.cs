@@ -14,7 +14,6 @@ namespace PeerToPeer
    {
       private readonly ConcurrentBag<IObserver<string>> _observers;
       private readonly AutoResetEvent _autoResetEvent;
-      private readonly int _portNumber;
       private IPHostEntry _ipHostInfo;
       private IPEndPoint _localEndPoint;
       private Socket _listener;
@@ -27,11 +26,13 @@ namespace PeerToPeer
 
       public IPAddress IPAddress { get; private set; }
 
+      public int PortNumber { get; }
+
       public PeerServer(AutoResetEvent autoResetEvent, int portNumber = 11000)
       {
          _observers = new ConcurrentBag<IObserver<string>>();
          _autoResetEvent = autoResetEvent;
-         _portNumber = portNumber;
+         PortNumber = portNumber;
          _numberOfConnections = 0;
          SetUpLocalEndPoint();
       }
@@ -40,7 +41,7 @@ namespace PeerToPeer
       {
          _ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
          IPAddress = _ipHostInfo.AddressList[0];
-         _localEndPoint = new IPEndPoint(IPAddress, _portNumber);
+         _localEndPoint = new IPEndPoint(IPAddress, PortNumber);
       }
 
       public void StartListening()

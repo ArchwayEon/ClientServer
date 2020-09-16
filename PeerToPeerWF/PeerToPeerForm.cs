@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -80,8 +81,13 @@ namespace PeerToPeerWF
          client.SetUpRemoteEndPoint(_server.IPAddress, port);
          client.ConnectToRemoteEndPoint();
          Task.Factory.StartNew(
-            () => client.ReceiveResponse()
+            () =>
+            {
+               client.SendRequest($"I_AM:{_server.PortNumber}");
+               client.ReceiveResponse();
+            }
          ); 
+         
       }
 
       private void ProcessSet(string parameters)
