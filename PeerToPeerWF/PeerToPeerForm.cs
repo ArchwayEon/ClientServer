@@ -1,5 +1,6 @@
 ﻿using PeerToPeer;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -16,13 +17,13 @@ namespace PeerToPeerWF
    {
       private AutoResetEvent _serverResetEvent;
       private PeerServer _server;
-      private ICollection<PeerClient> _clients;
+      private ConcurrentBag<PeerClient> _clients;
 
       public PeerToPeerForm()
       {
          InitializeComponent();
          _serverResetEvent = new AutoResetEvent(false);
-         _clients = new List<PeerClient>();
+         _clients = new ConcurrentBag<PeerClient>();
       }
 
       private void PeerToPeerForm_Load(object sender, EventArgs e)
@@ -51,8 +52,23 @@ namespace PeerToPeerWF
             case "connect":
                ProcessConnect(parameters);
                break;
+            case "send":
+               ProcessSend(parameters);
+               break;
          }
          
+      }
+
+      private void ProcessSend(string parameters)
+      {
+         Task.Factory.StartNew(
+            () => {
+               foreach(var client in _clients)
+               {
+                  client.SendRequest(parameters);
+               }
+            }
+         );
       }
 
       private void ProcessConnect(string parameters)
@@ -63,6 +79,9 @@ namespace PeerToPeerWF
          client.Subscribe(new StringObserver(txtMain));
          client.SetUpRemoteEndPoint(_server.IPAddress, port);
          client.ConnectToRemoteEndPoint();
+         Task.Factory.StartNew(
+            () => client.ReceiveResponse()
+         ); 
       }
 
       private void ProcessSet(string parameters)

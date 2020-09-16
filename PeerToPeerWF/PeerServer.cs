@@ -16,7 +16,6 @@ namespace PeerToPeer
       private readonly AutoResetEvent _autoResetEvent;
       private readonly int _portNumber;
       private IPHostEntry _ipHostInfo;
-      private IPAddress _ipAddress;
       private IPEndPoint _localEndPoint;
       private Socket _listener;
       private int _numberOfConnections;
@@ -26,7 +25,7 @@ namespace PeerToPeer
 
       public bool TimeToExit { get; set; } = false;
 
-      public IPAddress IPAddress { get { return _ipAddress; } }
+      public IPAddress IPAddress { get; private set; }
 
       public PeerServer(AutoResetEvent autoResetEvent, int portNumber = 11000)
       {
@@ -40,13 +39,13 @@ namespace PeerToPeer
       private void SetUpLocalEndPoint()
       {
          _ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-         _ipAddress = _ipHostInfo.AddressList[0];
-         _localEndPoint = new IPEndPoint(_ipAddress, _portNumber);
+         IPAddress = _ipHostInfo.AddressList[0];
+         _localEndPoint = new IPEndPoint(IPAddress, _portNumber);
       }
 
       public void StartListening()
       {
-         _listener = new Socket(_ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+         _listener = new Socket(IPAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
          _listener.Bind(_localEndPoint);
          _listener.Listen(BackLog);
       }
@@ -86,6 +85,7 @@ namespace PeerToPeer
                   break;
                }
             }
+            ReportMessage($"RECEIVED:{request}");
             // Process the incoming data
             byte[] msg = Encoding.ASCII.GetBytes(request);
             handler.Send(msg);

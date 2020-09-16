@@ -39,6 +39,13 @@ namespace PeerToPeer
          ReportMessage($"Socket connected to {_sender.RemoteEndPoint}");
       }
 
+      public void SendRequest(string request)
+      {
+         ReportMessage($"SENDING:{request}");
+         byte[] msg = Encoding.ASCII.GetBytes(request+"<EOF>");
+         _sender.Send(msg);
+      }
+
       public void ReceiveResponse()
       {
          string response;
@@ -46,7 +53,7 @@ namespace PeerToPeer
          {
             int bytesRec = _sender.Receive(_bytes);
             response = Encoding.ASCII.GetString(_bytes, 0, bytesRec);
-            ReportMessage($"{response}");
+            ReportMessage($"RECEIVED:{response}");
          } while (response != "Exit");
       }
 
