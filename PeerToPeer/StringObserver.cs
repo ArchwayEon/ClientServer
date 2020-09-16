@@ -5,15 +5,15 @@ using System.Text;
 
 namespace PeerToPeer
 {
-   public class ServerObserver : IObserver<string>
+   public class StringObserver : IObserver<string>
    {
       private IDisposable _unsubscriber;
       private readonly ConsoleWrapper _console;
-      private IOArea _messageArea;
+      private readonly IOArea _messageArea;
 
-      public ServerObserver()
+      public StringObserver(ConsoleWrapper console)
       {
-         _console = new ConsoleWrapper();
+         _console = console;
          _messageArea = new IOArea(_console);
       }
 

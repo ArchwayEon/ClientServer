@@ -8,9 +8,15 @@ namespace PeerToPeer
    {
       static void Main(string[] args)
       {
-         AutoResetEvent autoResetEvent = new AutoResetEvent(false);
-         PeerServer server = new PeerServer(autoResetEvent);
-         server.Subscribe(new ServerObserver());
+         ConsoleWrapper console = new ConsoleWrapper();
+         string input = console.Input(0, 0, "Enter username:this port >");
+         var info = input.Split(':');
+         string username = info[0];
+         int port = Int32.Parse(info[1]);
+
+         var serverResetEvent = new AutoResetEvent(false);
+         var server = new PeerServer(serverResetEvent, port);
+         server.Subscribe(new StringObserver(console));
 
          try
          {
@@ -18,7 +24,7 @@ namespace PeerToPeer
             Task.Factory.StartNew(
                () => server.WaitForConnection()
             );
-            autoResetEvent.WaitOne();
+            serverResetEvent.WaitOne();
          }
          catch(Exception ex)
          {
