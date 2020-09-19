@@ -17,6 +17,9 @@ namespace PeerToPeer
       private IPEndPoint _remoteEP;
       private Socket _sender;
 
+      public string UserName { get; set; }
+      public IPEndPoint EndPoint { get; set; }
+
       public PeerClient()
       {
          _observers = new ConcurrentBag<IObserver<string>>();
@@ -36,7 +39,8 @@ namespace PeerToPeer
       {
          _sender = new Socket(_serverIpAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
          _sender.Connect(_remoteEP);
-         ReportMessage($"Socket connected to {_sender.RemoteEndPoint}");
+         EndPoint = _sender.RemoteEndPoint as IPEndPoint;
+         ReportMessage($"Socket connected to {EndPoint}");
       }
 
       public void SendRequest(string request)

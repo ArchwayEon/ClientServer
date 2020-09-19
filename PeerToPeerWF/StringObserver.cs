@@ -30,7 +30,10 @@ namespace PeerToPeer
       {
          lock (_lockObject)
          {
-            _txtBox.Text += "The server has terminated." + Environment.NewLine;
+            _txtBox.BeginInvoke(new Action(
+               () => _txtBox.Text += "The server has terminated." + Environment.NewLine
+            ));
+            
          }
          
       }
@@ -44,7 +47,10 @@ namespace PeerToPeer
       {
          lock (_lockObject)
          {
-            _txtBox.Text += value + Environment.NewLine;
+            _txtBox.BeginInvoke(new Action(
+               () => _txtBox.Text += value + Environment.NewLine
+            ));
+            
          }
          
       }

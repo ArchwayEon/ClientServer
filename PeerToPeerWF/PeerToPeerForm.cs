@@ -18,13 +18,12 @@ namespace PeerToPeerWF
    {
       private AutoResetEvent _serverResetEvent;
       private PeerServer _server;
-      private ConcurrentBag<PeerClient> _clients;
+      
 
       public PeerToPeerForm()
       {
          InitializeComponent();
          _serverResetEvent = new AutoResetEvent(false);
-         _clients = new ConcurrentBag<PeerClient>();
       }
 
       private void PeerToPeerForm_Load(object sender, EventArgs e)
@@ -56,38 +55,29 @@ namespace PeerToPeerWF
             case "send":
                ProcessSend(parameters);
                break;
+            case "chat":
+               ProcessChat(command);
+               break;
          }
          
       }
 
+      private void ProcessChat(string command)
+      {
+         _server.SendToAllPeers(command);
+      }
+
       private void ProcessSend(string parameters)
       {
-         Task.Factory.StartNew(
-            () => {
-               foreach(var client in _clients)
-               {
-                  client.SendRequest(parameters);
-               }
-            }
-         );
+         _server.SendToAllPeers(parameters);
       }
 
       private void ProcessConnect(string parameters)
       {
          int port = Int32.Parse(parameters);
-         var client = new PeerClient();
-         _clients.Add(client);
-         client.Subscribe(new StringObserver(txtMain));
-         client.SetUpRemoteEndPoint(_server.IPAddress, port);
-         client.ConnectToRemoteEndPoint();
-         Task.Factory.StartNew(
-            () =>
-            {
-               client.SendRequest($"I_AM:{_server.PortNumber}");
-               client.ReceiveResponse();
-            }
-         ); 
-         
+         var peer = new PeerClient();
+         peer.Subscribe(new StringObserver(txtMain));
+         _server.ConnectToPeer(peer, port);
       }
 
       private void ProcessSet(string parameters)
@@ -96,7 +86,10 @@ namespace PeerToPeerWF
          txtMain.Text += "User: " + options[0] + Environment.NewLine;
          txtMain.Text += "Port: " + options[1] + Environment.NewLine;
          int port = Int32.Parse(options[1]);
-         _server = new PeerServer(_serverResetEvent, port);
+         _server = new PeerServer(_serverResetEvent, port)
+         {
+            UserName = options[0]
+         };
          _server.Subscribe(new StringObserver(txtMain));
          _server.StartListening();
          Task.Factory.StartNew(
