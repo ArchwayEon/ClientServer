@@ -47,6 +47,7 @@ namespace PeerToPeerWF
          var index = command.IndexOf(' ');
          var cmd = command.Substring(0, index).ToLower();
          var parameters = command[(index+1)..length];
+         
          switch (cmd)
          {
             case "set":
@@ -67,22 +68,78 @@ namespace PeerToPeerWF
 
         private void ProcessChat(string parameters)
         {
-            var length = parameters.Length;
-            var index = parameters.IndexOf(' ');
-            var user = parameters.Substring(0, index).ToLower();
-            var message = parameters[(index + 1)..length];
+            string[] paramArray = parameters.Split('|');
+            var length = paramArray[0].Length;
+                        var indexOfUser = paramArray[0].IndexOf(' ');
+            var user = paramArray[0].Substring(0, indexOfUser).ToLower();
+            var message = paramArray[0][(indexOfUser + 1)..length];
+            string[] historyArray;
+            string history;
 
+            // If there is a message history on the chat, handle that
+            if (paramArray.Length > 1) {
+               historyArray = paramArray[1].Remove(0,1).Split(' ');
+
+                // Check the message history, adding a new connection for each user not in clients
+                bool alreadyConnected = false;
+                foreach (var historyEntry in historyArray)
+                {
+                    foreach (var client in _clients)
+                    {
+                        if (client.GetUsername() == historyEntry.Split(':')[0])
+                        {
+                            alreadyConnected = true;
+                            continue;
+                        }
+                    }
+
+                    if (!alreadyConnected)
+                    {
+                        ProcessConnect(historyEntry);
+                    }
+
+                    alreadyConnected = false;
+                }
+
+                // Update the history, keeping amount of users the same, but appending self to list
+                history = _server.GetServerInfo() + " " + historyArray[1];
+            } else
+            {
+                // Create a message history with us as the only entry
+                history = _server.GetServerInfo();
+            }
+            
+            // Check if we have a connection to the addressed user, and if we do, send the message
+            bool foundAddressedUser = false;
             Task.Factory.StartNew(
-               () => {
-                   foreach (var client in _clients)
-                   {
-                       client.SendRequest(parameters);
+                () => {
+                    foreach (var client in _clients)
+                    {
+                        if (client.GetUsername() == user)
+                        {
+                            client.SendRequest(message);
+                            foundAddressedUser = true;
+                            continue;
+                        }
+                    }
+                }
+             );
+            
+            // Otherwise, append the new message history, and forward it out to our connections
+            if(!foundAddressedUser)
+            {
+                Task.Factory.StartNew(
+                   () => {
+                       foreach (var client in _clients)
+                       {
+                           client.SendRequest("chat " + user + " " + message + " | " + history);
+                       }
                    }
-               }
-            );
+                );
+            }
         }
 
-        private void ProcessSend(string parameters)
+      private void ProcessSend(string parameters)
       {
          Task.Factory.StartNew(
             () => {
@@ -96,13 +153,15 @@ namespace PeerToPeerWF
 
       private void ProcessConnect(string parameters)
       {
-         int port = Int32.Parse(parameters);
-         var client = new PeerClient(username);
+         
+         string username = parameters.Split(':')[0];
+            int port = Int32.Parse(parameters.Split(':')[1]);
+            var client = new PeerClient(username);
          _clients.Add(client);
          client.Subscribe(new StringObserver(txtMain));
          client.SetUpRemoteEndPoint(_server.IPAddress, port);
          client.ConnectToRemoteEndPoint();
-         Task.Factory.StartNew(
+            Task.Factory.StartNew(
             () => client.ReceiveResponse()
          ); 
       }
@@ -113,8 +172,8 @@ namespace PeerToPeerWF
          txtMain.Text += "User: " + options[0] + Environment.NewLine;
          txtMain.Text += "Port: " + options[1] + Environment.NewLine;
          int port = Int32.Parse(options[1]);
-         string username = options[0];
-         _server = new PeerServer(_serverResetEvent, port, username);
+         string username = options[0].ToLower();
+         _server = new PeerServer(_serverResetEvent, username, port);
          _server.Subscribe(new StringObserver(txtMain));
          _server.StartListening();
          Task.Factory.StartNew(

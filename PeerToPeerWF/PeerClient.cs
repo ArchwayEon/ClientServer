@@ -16,7 +16,8 @@ namespace PeerToPeer
       private int _serverPort;
       private IPEndPoint _remoteEP;
       private Socket _sender;
-        private string _username;
+      string _username;
+        private int _clientPort;
 
       public PeerClient(string username)
       {
@@ -24,7 +25,7 @@ namespace PeerToPeer
          _serverIpAddress = null;
          _serverPort = 11000;
          _remoteEP = null;
-            _username = username;
+         _username = username;
       }
 
       public void SetUpRemoteEndPoint(IPAddress serverIpAddress, int serverPort)
@@ -48,7 +49,17 @@ namespace PeerToPeer
          _sender.Send(msg);
       }
 
-      public void ReceiveResponse()
+      public string GetUsername()
+      {
+            return _username;
+      }
+
+        public string GetClientPort()
+        {
+            return _clientPort.ToString();
+        }
+
+        public void ReceiveResponse()
       {
          string response;
          do
@@ -56,10 +67,14 @@ namespace PeerToPeer
             int bytesRec = _sender.Receive(_bytes);
             response = Encoding.ASCII.GetString(_bytes, 0, bytesRec);
             ReportMessage($"RECEIVED:{response}");
-         } while (response != "Exit");
+            if(response.Contains("chat"))
+                {
+                    SendRequest(response);
+                }
+            } while (response != "Exit");
       }
 
-      public IDisposable Subscribe(IObserver<string> observer)
+           public IDisposable Subscribe(IObserver<string> observer)
       {
          if (!_observers.Contains(observer))
             _observers.Add(observer);
