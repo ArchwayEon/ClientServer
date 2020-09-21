@@ -1,5 +1,4 @@
-﻿using PeerToPeerWF;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Net;
@@ -14,7 +13,6 @@ namespace PeerToPeer
     {
         private readonly ConcurrentBag<IObserver<string>> _observers;
         private readonly AutoResetEvent _autoResetEvent;
-        private PeerToPeerForm _form;
 
         private readonly int _portNumber;
         private IPHostEntry _ipHostInfo;
@@ -27,13 +25,15 @@ namespace PeerToPeer
         public bool TimeToExit { get; set; } = false;
         public IPAddress IPAddress { get; private set; }
 
-        public PeerServer(AutoResetEvent autoResetEvent, PeerToPeerForm form, int portNumber = 11000)
+        public String Name { get; private set; } = String.Empty;
+
+        public PeerServer(AutoResetEvent autoResetEvent, string name, int portNumber = 11000)
         {
             _observers = new ConcurrentBag<IObserver<string>>();
             _autoResetEvent = autoResetEvent;
             _portNumber = portNumber;
             _numberOfConnections = 0;
-            _form = form;
+            Name = name;
             SetUpLocalEndPoint();
         }
 
@@ -53,11 +53,9 @@ namespace PeerToPeer
 
         public void WaitForConnection()
         {
-
-            ReportMessage("Waiting for a connections...");
-
             do
             {
+                ReportMessage("Waiting for a connection...");
                 Socket handler = _listener.Accept();
                 Task.Factory.StartNew(
                    () => HandleRequest(handler)
@@ -88,11 +86,10 @@ namespace PeerToPeer
                         break;
                     }
                 }
-
-                if (_form.Debug)
-                    ReportMessage($"RECEIVED:{request}");
-
-                _form.HandleMessage(request);
+                ReportMessage($"RECEIVED:{request}");
+                // Process the incoming data
+                byte[] msg = Encoding.ASCII.GetBytes(request);
+                handler.Send(msg);
             } while (request != "Exit");
 
             Interlocked.Decrement(ref _numberOfConnections);
