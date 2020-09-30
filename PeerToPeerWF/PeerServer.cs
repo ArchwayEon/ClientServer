@@ -55,6 +55,8 @@ namespace PeerToPeer
          _listener.Listen(BackLog);
       }
 
+      
+
       public void WaitForConnection()
       {
          do
@@ -107,6 +109,10 @@ namespace PeerToPeer
       {
          var len = request.Length;
          var index = request.IndexOf(':');
+         if(index == -1)
+         {
+            index = request.IndexOf(' ');
+         }
          var left = request.Substring(0, index).ToLower();
          switch (left)
          {
@@ -132,11 +138,34 @@ namespace PeerToPeer
                   ReportMessage($"{userName} is already connected");
                }
                break;
+            case "chat":
+               right = request[(index + 1)..len];
+               index = right.IndexOf(' ');
+               userName = right.Substring(0, index).ToLower();
+               len = right.Length;
+               right = right[(index + 1)..len];
+               parameters = right.Split('|');
+               if(parameters[1].ToLower() == UserName.ToLower())
+               {
+                  return;
+               }
+               if (userName != UserName.ToLower())
+               {
+                  SendToAllPeers($"{request}");
+                  return;
+               }
+               ReportMessage($"*** From {parameters[1]}:{parameters[0]} ***");
+               break;
             default:
                byte[] msg = Encoding.ASCII.GetBytes(request);
                handler.Send(msg);
                break;
          }
+      }
+
+      public void SendChatToAllPeers(string command)
+      {
+         SendToAllPeers($"{command}|{UserName}");
       }
 
       public void SendToAllPeers(string message)

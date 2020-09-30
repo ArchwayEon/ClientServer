@@ -64,7 +64,7 @@ namespace PeerToPeerWF
 
       private void ProcessChat(string command)
       {
-         _server.SendToAllPeers(command);
+         _server.SendChatToAllPeers(command);
       }
 
       private void ProcessSend(string parameters)
